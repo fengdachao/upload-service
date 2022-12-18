@@ -4,7 +4,7 @@ const { argv } = require('node:process')
 
 const db = require('./db')
 
-const port = argv[2] || 9000
+const port = argv[2] || 9001
 // host: '43.143.198.28'
 const client = net.createConnection({ port }, () => {
   // 'connect' listener.

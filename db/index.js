@@ -2,7 +2,7 @@ const { MongoClient, GridFSBucket } = require('mongodb');
 const fs = require('fs')
 
 // Connection URL
-const url = 'mongodb://localhost:27017';
+const url = 'mongodb://mongo-local:27017';
 const client = new MongoClient(url);
 
 // Database Name
