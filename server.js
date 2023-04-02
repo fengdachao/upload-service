@@ -8,7 +8,6 @@ const uuid = require('uuid')
 const db = require("./db")
 const { request } = require("node:http")
 
-
 http.get('http://mongo-local:3001/api/config/list', {}, (res) => {
   // console.log('res:', res)
   if (res.statusCode === 200) {
@@ -24,22 +23,28 @@ http.get('http://mongo-local:3001/api/config/list', {}, (res) => {
   }
 })
 
+const sendRequest = (postData) => {
+  const request = http.request('http://mongo-local:3001/api/add', {
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(postData)
+    }
+  }, (res) => {
+    console.log('Add api call in upload server:', res.statusCode)  
+  })
+  request.write(postData)
+  request.end()
+}
+
 const createServer = ({ place, port }) => {
+  let currentChunk = Buffer.alloc(0)
   const server = net.createServer((c) => {
     console.log("client connected")
     c.on("end", () => {
-      console.log("client disconnected")
-    })
-    c.write("hello\r\n")
-    c.pipe(c)
-    c.on("data", (chunk) => {
       const timestamp = new Date().getTime()
       const fileName = `image-${timestamp}.jpeg`
       const filePath = path.resolve(__dirname, `./images/${fileName}`)
-      writeFile(filePath, chunk, (err) => {
-        if (err) throw err
-        console.log("The file has been saved!")
-      })
       const postData = JSON.stringify({
         name: fileName,
         relativePath: `${fileName}`,
@@ -47,28 +52,22 @@ const createServer = ({ place, port }) => {
         date: timestamp,
         timestamp,
         place,
+      })   
+      console.log("data end")
+      sendRequest(postData)
+      writeFile(filePath, currentChunk, (err) => {
+        if (err) throw err
+        console.log("The file has been saved!")
       })
-      const request = http.request('http://mongo-local:3001/api/add', {
-        method: 'post',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(postData)
-        }
-      }, (res) => {
-        console.log('Add api call in upload server:', res.statusCode)  
-      })
-      // db.insert({
-      //   name: fileName,
-      //   relativePath: `${fileName}`,
-      //   physicalPath: filePath,
-      //   date: timestamp,
-      //   timestamp,
-      //   place,
-      // }).then(() => {
-      //   console.log("insert done...")
-      // })
-      request.write(postData)
-      request.end()
+      currentChunk = Buffer.alloc(0)
+    })
+    c.write("hello\r\n")
+    c.pipe(c)
+    c.on("data", (chunk) => {
+      currentChunk = Buffer.concat([currentChunk, chunk])
+      const timestamp = new Date().getTime()
+      const fileName = `image-${timestamp}.jpeg`
+      const filePath = path.resolve(__dirname, `./images/${fileName}`)
     })
   })
   server.on("error", (err) => {

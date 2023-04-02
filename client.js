@@ -5,8 +5,8 @@ const { argv } = require('node:process')
 const db = require('./db')
 
 const port = argv[2] || 9001
-// host: '43.143.198.28'
-const client = net.createConnection({ port }, () => {
+const host = 'localhost'
+const client = net.createConnection({ host, port }, () => {
   // 'connect' listener.
   console.log('connected to server with port', port);
   
@@ -14,6 +14,7 @@ const client = net.createConnection({ port }, () => {
 });
 readFile('./upload-images/images.jpeg', (err, chunk) => {
   client.write(chunk);
+  console.log('reading chunk:', chunk)
 })
 client.on('data', (data) => {
   client.end();
