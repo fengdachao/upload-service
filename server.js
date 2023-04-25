@@ -39,9 +39,12 @@ const sendRequest = (postData) => {
 
 const createServer = ({ place, port }) => {
   let currentChunk = Buffer.alloc(0)
-  const server = net.createServer((c) => {
+  const server = net.createServer({
+    keepAlive: true,
+  }, (c) => {
     console.log("client connected")
     c.on("end", () => {
+      console.log("data end")
       const timestamp = new Date().getTime()
       const fileName = `image-${timestamp}.jpeg`
       const filePath = path.resolve(__dirname, `./images/${fileName}`)
@@ -52,8 +55,7 @@ const createServer = ({ place, port }) => {
         date: timestamp,
         timestamp,
         place,
-      })   
-      console.log("data end")
+      })
       sendRequest(postData)
       writeFile(filePath, currentChunk, (err) => {
         if (err) throw err
@@ -61,14 +63,17 @@ const createServer = ({ place, port }) => {
       })
       currentChunk = Buffer.alloc(0)
     })
-    c.write("hello\r\n")
-    c.pipe(c)
+    c.end("hello\r\n")
     c.on("data", (chunk) => {
+      console.log('on data size:', chunk.length)
       currentChunk = Buffer.concat([currentChunk, chunk])
-      const timestamp = new Date().getTime()
-      const fileName = `image-${timestamp}.jpeg`
-      const filePath = path.resolve(__dirname, `./images/${fileName}`)
+      console.log('on data:', chunk.length)
+      console.log('current thunk:', currentChunk)
+      // const timestamp = new Date().getTime()
+      // const fileName = `image-${timestamp}.jpeg`
+      // const filePath = path.resolve(__dirname, `./images/${fileName}`)
     })
+    // c.pipe(c)
   })
   server.on("error", (err) => {
     throw err
