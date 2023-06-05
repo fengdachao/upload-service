@@ -18,7 +18,8 @@ http.get('http://mongo-local:3001/api/config/list', {}, (res) => {
     res.on('end', () => {
       console.log('receive data end:', rawData)
       const configList = JSON.parse(rawData)
-      configList.forEach((c) => createServer(c))
+      console.log('config:', configList)
+      configList.forEach((c) => c.list.forEach((device) => createServer({ place: c.place, port: device.port})))
     })
   }
 })
