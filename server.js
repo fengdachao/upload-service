@@ -40,7 +40,7 @@ const batchFileServer = http.createServer((req, res) => {
   res.end(zipFile)
 })
 
-batchFileServer.listen(6666, () => {
+batchFileServer.listen(6666, 'mongo-local', () => {
   console.log('Batch download server is running... on 6666')
 })
 
